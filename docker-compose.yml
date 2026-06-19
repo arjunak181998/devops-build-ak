@@ -1,0 +1,17 @@
+version: '3'
+
+services:
+
+  react-app:
+
+    image: devops-build-ak
+
+    container_name: react-app
+
+    build: .
+
+    ports:
+
+      - "80:80"
+
+    restart: always
