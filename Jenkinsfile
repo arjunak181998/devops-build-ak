@@ -66,7 +66,7 @@ pipeline {
 
             when {
 
-                branch 'dev'
+                branch 'origin/dev'
 
             }
 
