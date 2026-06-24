@@ -1,7 +1,6 @@
 pipeline {
 agent any
 
-```
 environment {
     DEV_IMAGE  = "arjunak181998/dev:latest"
     PROD_IMAGE = "arjunak181998/prod:latest"
@@ -92,7 +91,6 @@ post {
         echo 'Pipeline failed.'
     }
 }
-```
 
 }
 
