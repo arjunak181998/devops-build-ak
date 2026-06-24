@@ -1,6 +1,7 @@
 services:
   react-app:
-    image: devops-build-ak
+    image: arjunak181998/dev:latest
     container_name: react-app-dev
     ports:
       - "8081:80"
+    restart: always

@@ -45,35 +45,35 @@ stages {
         }
     }
 
-    stage('Push Dev Image') {
-        when {
-            expression {
-                env.GIT_BRANCH?.contains('dev')
-            }
-        }
-        steps {
-            sh '''
-            docker tag app-image $DEV_IMAGE
-            docker push $DEV_IMAGE
-            '''
+    stage('Deploy Dev') {
+    when {
+        expression {
+            env.GIT_BRANCH?.contains('dev')
         }
     }
+    steps {
+        sh '''
+        docker compose -f docker-compose.dev.yml down || true
+        docker compose -f docker-compose.dev.yml up -d
+        '''
+    }
+}
 
-    stage('Push Prod Image') {
-        when {
-            expression {
-                env.GIT_BRANCH?.contains('master')
-            }
-        }
-        steps {
-            sh '''
-            docker tag app-image $PROD_IMAGE
-            docker push $PROD_IMAGE
-            '''
+    stage('Deploy Prod') {
+    when {
+        expression {
+            env.GIT_BRANCH?.contains('master')
         }
     }
+    steps {
+        sh '''
+        docker compose -f docker-compose.prod.yml down || true
+        docker compose -f docker-compose.prod.yml up -d
+        '''
+    }
+}
 
-    stage('Deploy') {
+   stage('Deploy') {
         steps {
             sh '''
             docker compose down || true
