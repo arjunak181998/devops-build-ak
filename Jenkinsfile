@@ -1,72 +1,98 @@
 pipeline {
-    agent any
+agent any
 
-    environment {
-        DEV_IMAGE  = "arjunak181998/dev:latest"
-        PROD_IMAGE = "arjunak181998/prod:latest"
+```
+environment {
+    DEV_IMAGE  = "arjunak181998/dev:latest"
+    PROD_IMAGE = "arjunak181998/prod:latest"
+}
+
+stages {
+
+    stage('Checkout') {
+        steps {
+            checkout scm
+        }
     }
 
-    stages {
-
-        stage('Checkout') {
-            steps {
-                checkout scm
-            }
+    stage('Debug Branch') {
+        steps {
+            sh '''
+            echo "BRANCH_NAME=$BRANCH_NAME"
+            echo "GIT_BRANCH=$GIT_BRANCH"
+            '''
         }
+    }
 
-        stage('Build Docker Image') {
-            steps {
-                sh 'docker build -t app-image .'
-            }
+    stage('Build Docker Image') {
+        steps {
+            sh 'docker build -t app-image .'
         }
+    }
 
-        stage('Docker Login') {
-            steps {
-                withCredentials([
-                    usernamePassword(
-                        credentialsId: 'dockerhub',
-                        usernameVariable: 'USER',
-                        passwordVariable: 'PASS'
-                    )
-                ]) {
-                    sh '''
-                    echo $PASS | docker login -u $USER --password-stdin
-                    '''
-                }
-            }
-        }
-
-        stage('Push Dev Image') {
-            when {
-                branch 'dev'
-            }
-            steps {
+    stage('Docker Login') {
+        steps {
+            withCredentials([
+                usernamePassword(
+                    credentialsId: 'dockerhub',
+                    usernameVariable: 'USER',
+                    passwordVariable: 'PASS'
+                )
+            ]) {
                 sh '''
-                docker tag app-image $DEV_IMAGE
-                docker push $DEV_IMAGE
+                echo $PASS | docker login -u $USER --password-stdin
                 '''
             }
         }
+    }
 
-        stage('Push Prod Image') {
-            when {
-                branch 'master'
-            }
-            steps {
-                sh '''
-                docker tag app-image $PROD_IMAGE
-                docker push $PROD_IMAGE
-                '''
+    stage('Push Dev Image') {
+        when {
+            expression {
+                env.GIT_BRANCH?.contains('dev')
             }
         }
+        steps {
+            sh '''
+            docker tag app-image $DEV_IMAGE
+            docker push $DEV_IMAGE
+            '''
+        }
+    }
 
-        stage('Deploy') {
-            steps {
-                sh '''
-                docker compose down || true
-                docker compose up -d
-                '''
+    stage('Push Prod Image') {
+        when {
+            expression {
+                env.GIT_BRANCH?.contains('master')
             }
+        }
+        steps {
+            sh '''
+            docker tag app-image $PROD_IMAGE
+            docker push $PROD_IMAGE
+            '''
+        }
+    }
+
+    stage('Deploy') {
+        steps {
+            sh '''
+            docker compose down || true
+            docker compose up -d
+            '''
         }
     }
 }
+
+post {
+    success {
+        echo 'Pipeline completed successfully.'
+    }
+    failure {
+        echo 'Pipeline failed.'
+    }
+}
+```
+
+}
+
