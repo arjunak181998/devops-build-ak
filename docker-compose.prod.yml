@@ -1,0 +1,6 @@
+services:
+  react-app:
+    image: devops-build-ak
+    container_name: react-app-prod
+    ports:
+      - "8080:80"
